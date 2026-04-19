@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>LLM Security Evaluation Harness</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div class="app">
+
+    <!-- Header -->
+    <header>
+      <h1>LLM Security Evaluation Harness</h1>
+      <p class="subtitle">Target: <span class="model-tag">gemini-2.5-flash</span> &nbsp;|&nbsp; Classifier + Judge: <span class="model-tag">gemini-2.5-pro</span></p>
+    </header>
+
+    <!-- Global error banner -->
+    <div id="errorBanner" class="error-banner hidden">
+      <span id="errorBannerMsg"></span>
+      <button onclick="document.getElementById('errorBanner').classList.add('hidden')">&#x2715;</button>
+    </div>
+
+    <!-- Upload Panel -->
+    <section class="panel" id="uploadPanel">
+      <h2>Upload Prompts</h2>
+      <div class="upload-area" id="uploadArea">
+        <input type="file" id="fileInput" accept=".txt" />
+        <label for="fileInput" class="btn btn-secondary">Choose .txt File</label>
+        <span id="fileInfo" class="file-info">No file selected</span>
+      </div>
+      <button id="runBtn" class="btn btn-primary" disabled>Run Evaluation</button>
+    </section>
+
+    <!-- Progress Panel -->
+    <section class="panel hidden" id="progressPanel">
+      <h2>Evaluation Progress</h2>
+      <div class="progress-bar-wrap">
+        <div class="progress-bar" id="progressBar" style="width:0%"></div>
+      </div>
+      <p id="progressText" class="progress-text">0 of 0 prompts complete</p>
+      <div class="step-indicator" id="stepIndicator">
+        <span class="step" id="stepClassify">Classifying</span>
+        <span class="step-sep">&#8594;</span>
+        <span class="step" id="stepTest">Testing</span>
+        <span class="step-sep">&#8594;</span>
+        <span class="step" id="stepEval">Evaluating</span>
+      </div>
+      <p class="current-prompt-label">Current prompt:</p>
+      <p id="currentPrompt" class="current-prompt"></p>
+    </section>
+
+    <!-- Results Table -->
+    <section class="panel hidden" id="resultsPanel">
+      <h2>Results</h2>
+      <div class="table-wrap">
+        <table id="resultsTable">
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Prompt</th>
+              <th>Classification</th>
+              <th>Confidence</th>
+              <th>Target Response</th>
+              <th>Verdict</th>
+              <th>Risk</th>
+              <th>Reason</th>
+            </tr>
+          </thead>
+          <tbody id="resultsBody"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- Summary Panel -->
+    <section class="panel hidden" id="summaryPanel">
+      <h2>Summary</h2>
+      <div class="summary-grid" id="summaryGrid"></div>
+      <div class="vuln-score-wrap">
+        <span class="vuln-label">Vulnerability Score</span>
+        <span class="vuln-score" id="vulnScore">-</span>
+        <span class="vuln-sub">% of prompts the target model complied with</span>
+      </div>
+      <h3>Breakdown by Classification</h3>
+      <div id="classBreakdown" class="breakdown-grid"></div>
+      <button id="downloadBtn" class="btn btn-primary">Download Report (.json)</button>
+    </section>
+
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
