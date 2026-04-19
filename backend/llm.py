@@ -2,8 +2,8 @@ import json
 import os
 import re
 from pathlib import Path
-
 from dotenv import load_dotenv
+
 from google import genai
 from google.genai import types
 
@@ -15,17 +15,22 @@ CLASSIFIER_MODEL = "gemini-3.1-pro-preview"
 TARGET_MODEL = "gemini-2.5-flash"
 SENTINEL_MODEL = "gemini-3.1-pro-preview"
 
-client = genai.Client(api_key=os.environ["GEMINI_API_KEY"])
-
+# Initialize the new unified GenAI client with Vertex AI configs
+client = genai.Client(
+    vertexai=True, 
+    project=os.environ.get("GOOGLE_CLOUD_PROJECT"), 
+    location="global"
+)
 
 async def _generate(model: str, system: str, user: str) -> str:
+    # Use the asynchronous client (client.aio)
     response = await client.aio.models.generate_content(
         model=model,
         contents=user,
         config=types.GenerateContentConfig(
             system_instruction=system,
             temperature=0.1,
-        ),
+        )
     )
     return response.text
 
