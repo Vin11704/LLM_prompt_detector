@@ -7,6 +7,14 @@ let completed = 0;
 let total = 0;
 
 // ── DOM refs ───────────────────────────────────────────────────────────────
+const loginContainer   = document.getElementById('loginContainer');
+const appContainer     = document.getElementById('appContainer');
+const loginForm        = document.getElementById('loginForm');
+const loginError       = document.getElementById('loginError');
+const logoutBtn        = document.getElementById('logoutBtn');
+const usernameInput    = document.getElementById('username');
+const passwordInput    = document.getElementById('password');
+
 const fileInput        = document.getElementById('fileInput');
 const fileInfo         = document.getElementById('fileInfo');
 const runBtn           = document.getElementById('runBtn');
@@ -375,3 +383,62 @@ downloadBtn.addEventListener('click', () => {
   a.click();
   URL.revokeObjectURL(a.href);
 });
+
+// ── Auth ───────────────────────────────────────────────────────────────────
+async function checkAuth() {
+  try {
+    const res = await fetch('/auth/check-auth');
+    if (res.ok) {
+      showApp();
+    } else {
+      showLogin();
+    }
+  } catch (e) {
+    showLogin();
+  }
+}
+
+function showLogin() {
+  appContainer.classList.add('hidden');
+  loginContainer.style.display = 'flex';
+}
+
+function showApp() {
+  loginContainer.style.display = 'none';
+  appContainer.classList.remove('hidden');
+}
+
+loginForm.addEventListener('submit', async (e) => {
+  e.preventDefault();
+  loginError.classList.add('hidden');
+  const username = usernameInput.value;
+  const password = passwordInput.value;
+  
+  try {
+    const res = await fetch('/auth/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ username, password })
+    });
+    
+    if (res.ok) {
+      showApp();
+      usernameInput.value = '';
+      passwordInput.value = '';
+    } else {
+      loginError.textContent = 'Invalid credentials';
+      loginError.classList.remove('hidden');
+    }
+  } catch (e) {
+    loginError.textContent = 'Network error';
+    loginError.classList.remove('hidden');
+  }
+});
+
+logoutBtn.addEventListener('click', async () => {
+  await fetch('/auth/logout', { method: 'POST' });
+  showLogin();
+});
+
+// Initialize
+checkAuth();

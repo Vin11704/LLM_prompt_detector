@@ -9,6 +9,8 @@ from fastapi.staticfiles import StaticFiles
 
 from llm import classify_prompt, evaluate_response, test_prompt
 from model import EvaluateRequest, ParseResponse
+from auth import router as auth_router, verify_session
+from fastapi import Depends
 
 app = FastAPI(title="LLM Security Evaluation Harness")
 
@@ -19,10 +21,12 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+app.include_router(auth_router, prefix="/auth", tags=["auth"])
+
 FRONTEND_DIR = Path(__file__).parent.parent / "frontend"
 
 
-@app.post("/parse", response_model=ParseResponse)
+@app.post("/parse", response_model=ParseResponse, dependencies=[Depends(verify_session)])
 async def parse_file(file: UploadFile = File(...)):
     content = await file.read()
     text = content.decode("utf-8", errors="replace")
@@ -111,7 +115,7 @@ async def _evaluate_generator(prompts: list[str]):
     yield f"data: {json.dumps({'status': 'complete', 'summary': summary, 'results': results})}\n\n"
 
 
-@app.post("/evaluate")
+@app.post("/evaluate", dependencies=[Depends(verify_session)])
 async def evaluate(request: EvaluateRequest):
     return StreamingResponse(
         _evaluate_generator(request.prompts),

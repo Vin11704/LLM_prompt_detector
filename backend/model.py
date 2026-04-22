@@ -1,6 +1,10 @@
 from typing import Literal, Optional
 from pydantic import BaseModel
 
+class LoginRequest(BaseModel):
+    username: str
+    password: str
+
 
 class ParseResponse(BaseModel):
     prompts: list[str]

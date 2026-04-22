@@ -7,12 +7,34 @@
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
-  <div class="app">
+  <!-- Login Container -->
+  <div class="login-container" id="loginContainer" style="display: none;">
+    <div class="panel login-panel">
+      <h2>Login</h2>
+      <form id="loginForm">
+        <div class="input-group">
+          <label for="username">Username</label>
+          <input type="text" id="username" required />
+        </div>
+        <div class="input-group">
+          <label for="password">Password</label>
+          <input type="password" id="password" required />
+        </div>
+        <button type="submit" class="btn btn-primary" style="width: 100%">Login</button>
+        <div id="loginError" class="error-text hidden"></div>
+      </form>
+    </div>
+  </div>
+
+  <div class="app hidden" id="appContainer">
 
     <!-- Header -->
-    <header>
-      <h1>LLM Security Evaluation Harness</h1>
-      <p class="subtitle">Target: <span class="model-tag">gemini-2.5-flash</span> &nbsp;|&nbsp; Classifier + Judge: <span class="model-tag">gemini-3.1-pro-preview</span></p>
+    <header class="app-header">
+      <div>
+        <h1>LLM Security Evaluation Harness</h1>
+        <p class="subtitle">Target: <span class="model-tag">gemini-2.5-flash</span> &nbsp;|&nbsp; Classifier + Judge: <span class="model-tag">gemini-3.1-pro-preview</span></p>
+      </div>
+      <button id="logoutBtn" class="btn btn-secondary">Logout</button>
     </header>
 
     <!-- Global error banner -->
