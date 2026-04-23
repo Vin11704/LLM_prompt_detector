@@ -1,5 +1,6 @@
 import asyncio
 import json
+import os
 from pathlib import Path
 
 from fastapi import FastAPI, File, UploadFile
@@ -14,9 +15,13 @@ from fastapi import Depends
 
 app = FastAPI(title="LLM Security Evaluation Harness")
 
+_default_origins = ["http://localhost:8000", "http://127.0.0.1:8000"]
+_extra_origins = [o.strip() for o in os.getenv("ALLOWED_ORIGINS", "").split(",") if o.strip()]
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=_default_origins + _extra_origins,
+    allow_credentials=True,
     allow_methods=["GET", "POST"],
     allow_headers=["*"],
 )
