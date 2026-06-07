@@ -2,3 +2,5 @@
 gen-lang-client*.json
 .claude/
 .vscode/
+*.pdf
+*.pdf

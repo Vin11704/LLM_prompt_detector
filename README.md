@@ -9,6 +9,7 @@ This project is an automated evaluation harness designed to test Large Language 
 ```text
 .
 ├── backend/
+|   |── auth.py          # Secure Authentication logic 
 │   ├── llm.py           # LLM connection logic and evaluation pipeline
 │   ├── main.py          # FastAPI endpoints and streaming logic
 │   ├── model.py         # Pydantic data models
