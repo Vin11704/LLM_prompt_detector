@@ -11,6 +11,8 @@ __pycache__
 *.png
 llm-security-report*.json
 malprompts.txt
-model.py
-requirements.txt
-package-lock.json
+# Only ignore root-level model.py and requirements.txt, NOT backend/ copies
+/model.py
+/requirements.txt
+# Ignore frontend node_modules (will be reinstalled in Docker)
+frontend/node_modules

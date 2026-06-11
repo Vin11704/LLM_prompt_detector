@@ -3,9 +3,9 @@ import json
 import os
 from pathlib import Path
 
-from fastapi import FastAPI, File, UploadFile
+from fastapi import FastAPI, File, Request, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import StreamingResponse
+from fastapi.responses import FileResponse, StreamingResponse
 from fastapi.staticfiles import StaticFiles
 
 from llm import classify_prompt, evaluate_response, test_prompt
@@ -26,9 +26,8 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-app.include_router(auth_router, prefix="/auth", tags=["auth"])
-
-FRONTEND_DIR = Path(__file__).parent.parent / "frontend"
+# FRONTEND_DIR = Path(__file__).parent.parent / "frontend"  # old: served raw frontend files
+FRONTEND_DIR = Path(__file__).parent.parent / "frontend" / "dist"
 
 
 @app.post("/parse", response_model=ParseResponse, dependencies=[Depends(verify_session)])
@@ -131,4 +130,14 @@ async def evaluate(request: EvaluateRequest):
 
 # Serve frontend — must be mounted last so API routes take priority
 if FRONTEND_DIR.exists():
-    app.mount("/", StaticFiles(directory=str(FRONTEND_DIR), html=True), name="static")
+    app.mount("/assets", StaticFiles(directory=str(FRONTEND_DIR / "assets")), name="static-assets")
+
+    # SPA catch-all: serve index.html for any non-API route (React Router support)
+    @app.get("/{full_path:path}")
+    async def serve_spa(request: Request, full_path: str):
+        # Try to serve the exact file first (e.g., favicon.svg, robots.txt)
+        file_path = FRONTEND_DIR / full_path
+        if full_path and file_path.exists() and file_path.is_file():
+            return FileResponse(file_path)
+        # Fall back to index.html for client-side routing
+        return FileResponse(FRONTEND_DIR / "index.html")

@@ -6,5 +6,9 @@ services:
     environment:
       - GOOGLE_CLOUD_PROJECT=${GOOGLE_CLOUD_PROJECT}
       - GOOGLE_APPLICATION_CREDENTIALS=/app/credentials/google-credentials.json
+      - AUTH_username=${AUTH_username}
+      - AUTH_password=${AUTH_password}
+      - ALLOWED_ORIGINS=${ALLOWED_ORIGINS:-}
+      - SECURE_COOKIES=false
     volumes:
       - ./gen-lang-client-0591040744-f194f21a1eec.json:/app/credentials/google-credentials.json:ro
