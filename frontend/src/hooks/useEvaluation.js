@@ -1,4 +1,5 @@
 import { useReducer, useCallback, useRef } from 'react';
+import { apiUrl } from '../utils/api';
 
 // ── Action types ──
 const ACTIONS = {
@@ -119,7 +120,7 @@ export function useEvaluation() {
     formData.append('file', file);
 
     try {
-      const res = await fetch('/parse', { method: 'POST', body: formData, credentials: 'include' });
+      const res = await fetch(apiUrl('/parse'), { method: 'POST', body: formData, credentials: 'include' });
       if (!res.ok) throw new Error(`Server returned ${res.status}`);
       const data = await res.json();
       dispatch({
@@ -186,7 +187,7 @@ export function useEvaluation() {
     abortRef.current = controller;
 
     try {
-      const response = await fetch('/evaluate', {
+      const response = await fetch(apiUrl('/evaluate'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ prompts: state.parsedPrompts }),

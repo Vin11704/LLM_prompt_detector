@@ -1,12 +1,13 @@
 import asyncio
 import json
 import os
-from pathlib import Path
+from pathlib import Path  # kept for potential future use
 
 from fastapi import FastAPI, File, Request, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import FileResponse, StreamingResponse
-from fastapi.staticfiles import StaticFiles
+# from fastapi.responses import FileResponse, StreamingResponse  # FileResponse no longer needed
+from fastapi.responses import StreamingResponse
+# from fastapi.staticfiles import StaticFiles  # No longer serving frontend from backend
 
 from llm import classify_prompt, evaluate_response, test_prompt
 from model import EvaluateRequest, ParseResponse
@@ -15,7 +16,15 @@ from fastapi import Depends
 
 app = FastAPI(title="LLM Security Evaluation Harness")
 
-_default_origins = ["http://localhost:8000", "http://127.0.0.1:8000"]
+# Default origins for local development (Vite dev server + backend ports)
+_default_origins = [
+    "http://localhost:5173",   # Vite dev server
+    "http://127.0.0.1:5173",
+    "http://localhost:8081",   # Frontend Nginx container (local docker)
+    "http://localhost:8000",   # Legacy: monolith
+    "http://127.0.0.1:8000",
+]
+# Production frontend URL(s) via env var, e.g. "https://llmsecurity-frontend-xxxxx.run.app"
 _extra_origins = [o.strip() for o in os.getenv("ALLOWED_ORIGINS", "").split(",") if o.strip()]
 
 app.add_middleware(
@@ -27,7 +36,7 @@ app.add_middleware(
 )
 
 # FRONTEND_DIR = Path(__file__).parent.parent / "frontend"  # old: served raw frontend files
-FRONTEND_DIR = Path(__file__).parent.parent / "frontend" / "dist"
+# FRONTEND_DIR = Path(__file__).parent.parent / "frontend" / "dist"
 
 
 @app.post("/parse", response_model=ParseResponse, dependencies=[Depends(verify_session)])
@@ -128,16 +137,16 @@ async def evaluate(request: EvaluateRequest):
     )
 
 
-# Serve frontend — must be mounted last so API routes take priority
-if FRONTEND_DIR.exists():
-    app.mount("/assets", StaticFiles(directory=str(FRONTEND_DIR / "assets")), name="static-assets")
+# # Serve frontend — must be mounted last so API routes take priority
+# if FRONTEND_DIR.exists():
+#     app.mount("/assets", StaticFiles(directory=str(FRONTEND_DIR / "assets")), name="static-assets")
 
-    # SPA catch-all: serve index.html for any non-API route (React Router support)
-    @app.get("/{full_path:path}")
-    async def serve_spa(request: Request, full_path: str):
-        # Try to serve the exact file first (e.g., favicon.svg, robots.txt)
-        file_path = FRONTEND_DIR / full_path
-        if full_path and file_path.exists() and file_path.is_file():
-            return FileResponse(file_path)
-        # Fall back to index.html for client-side routing
-        return FileResponse(FRONTEND_DIR / "index.html")
+#     # SPA catch-all: serve index.html for any non-API route (React Router support)
+#     @app.get("/{full_path:path}")
+#     async def serve_spa(request: Request, full_path: str):
+#         # Try to serve the exact file first (e.g., favicon.svg, robots.txt)
+#         file_path = FRONTEND_DIR / full_path
+#         if full_path and file_path.exists() and file_path.is_file():
+#             return FileResponse(file_path)
+#         # Fall back to index.html for client-side routing
+#         return FileResponse(FRONTEND_DIR / "index.html")

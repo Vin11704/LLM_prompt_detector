@@ -12,7 +12,7 @@ load_dotenv(dotenv_path=env_path)
 router = APIRouter()
 
 SESSION_MAX_AGE = int(os.getenv("SESSION_MAX_AGE", "3600"))  # 1 hour default
-SECURE_COOKIES = os.getenv("SECURE_COOKIES", "true").lower() != "false"
+SECURE_COOKIES = True
 
 # Server-side session store
 # In production, replace with Redis or a database
@@ -46,7 +46,7 @@ async def login(req: LoginRequest, response: Response):
             value=token,
             httponly=True,
             secure=SECURE_COOKIES,
-            samesite="lax",
+            samesite="none",
             max_age=SESSION_MAX_AGE,
         )
         return {"message": "Login successful"}
