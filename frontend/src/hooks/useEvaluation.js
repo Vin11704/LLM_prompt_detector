@@ -22,6 +22,7 @@ const initialState = {
   currentStep: null, // 'classify' | 'test' | 'eval' | null
   currentPromptText: '',
   results: [],
+  errors: [], // per-prompt failures: { index, message }
   summary: null,
   error: null,
   isRunning: false,
@@ -49,6 +50,7 @@ function reducer(state, action) {
         ...state,
         completed: 0,
         results: [],
+        errors: [],
         summary: null,
         finalReport: null,
         error: null,
@@ -74,6 +76,13 @@ function reducer(state, action) {
       return {
         ...state,
         completed: state.completed + 1,
+        errors: [
+          ...state.errors,
+          {
+            index: action.payload.index,
+            message: action.payload.message || 'Unknown error',
+          },
+        ],
       };
 
     case ACTIONS.SET_COMPLETE: {

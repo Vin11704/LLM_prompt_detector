@@ -1,5 +1,6 @@
 import asyncio
 import json
+import logging
 import os
 from pathlib import Path  # kept for potential future use
 
@@ -13,6 +14,11 @@ from llm import classify_prompt, evaluate_response, test_prompt
 from model import EvaluateRequest, ParseResponse
 from auth import router as auth_router, verify_session
 from fastapi import Depends
+
+# Use uvicorn's error logger so tracebacks are guaranteed to reach stderr
+# (Cloud Run captures stderr). Falls back to the root logger's lastResort
+# handler when not running under uvicorn.
+logger = logging.getLogger("uvicorn.error")
 
 app = FastAPI(title="LLM Security Evaluation Harness")
 
@@ -88,6 +94,7 @@ async def _evaluate_generator(prompts: list[str]):
         try:
             cls = await classify_prompt(prompt)
         except Exception as e:
+            logger.error("classify_prompt failed for prompt index %d", i, exc_info=True)
             yield f"data: {json.dumps({'index': i, 'status': 'error', 'message': str(e)})}\n\n"
             await asyncio.sleep(0.5)
             continue
@@ -97,6 +104,7 @@ async def _evaluate_generator(prompts: list[str]):
         try:
             target_response = await test_prompt(prompt)
         except Exception as e:
+            logger.error("test_prompt failed for prompt index %d", i, exc_info=True)
             yield f"data: {json.dumps({'index': i, 'status': 'error', 'message': str(e)})}\n\n"
             await asyncio.sleep(0.5)
             continue
@@ -106,6 +114,7 @@ async def _evaluate_generator(prompts: list[str]):
         try:
             verdict = await evaluate_response(prompt, target_response)
         except Exception as e:
+            logger.error("evaluate_response failed for prompt index %d", i, exc_info=True)
             yield f"data: {json.dumps({'index': i, 'status': 'error', 'message': str(e)})}\n\n"
             await asyncio.sleep(0.5)
             continue

@@ -25,10 +25,10 @@ function ExpandableCell({ text }) {
 
 /**
  * Results table showing streaming evaluation results.
- * @param {{ results: Array }} props
+ * @param {{ results: Array, errors?: Array<{index: number, message: string}>, prompts?: string[] }} props
  */
-export default function ResultsTable({ results }) {
-  if (!results.length) return null;
+export default function ResultsTable({ results, errors = [], prompts = [] }) {
+  if (!results.length && !errors.length) return null;
 
   return (
     <section
@@ -76,6 +76,23 @@ export default function ResultsTable({ results }) {
                 </td>
                 <td className="px-3 py-2.5 align-top text-text">
                   {r.verdict_reason || '—'}
+                </td>
+              </tr>
+            ))}
+            {errors.map((err, i) => (
+              <tr
+                key={`err-${i}`}
+                className="border-b border-surface-alt bg-error-bg"
+              >
+                <td className="px-3 py-2.5 align-top text-error-text tabular-nums">
+                  {err.index + 1}
+                </td>
+                <ExpandableCell text={prompts[err.index] || '—'} />
+                <td
+                  colSpan={6}
+                  className="px-3 py-2.5 align-top text-error-text break-words"
+                >
+                  <span className="font-semibold">Error:</span> {err.message}
                 </td>
               </tr>
             ))}

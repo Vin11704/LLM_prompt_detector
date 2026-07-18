@@ -18,6 +18,7 @@ export default function EvaluationPage() {
     currentStep,
     currentPromptText,
     results,
+    errors,
     summary,
     error,
     isRunning,
@@ -56,7 +57,7 @@ export default function EvaluationPage() {
           currentPromptText={currentPromptText}
         />
       )}
-      <ResultsTable results={results} />
+      <ResultsTable results={results} errors={errors} prompts={parsedPrompts} />
       <div ref={summaryRef}>
         <SummaryPanel summary={summary} finalReport={finalReport} />
       </div>
