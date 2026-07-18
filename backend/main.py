@@ -35,6 +35,8 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+app.include_router(auth_router, prefix="/auth", tags=["auth"])
+
 # FRONTEND_DIR = Path(__file__).parent.parent / "frontend"  # old: served raw frontend files
 # FRONTEND_DIR = Path(__file__).parent.parent / "frontend" / "dist"
 
