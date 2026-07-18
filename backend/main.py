@@ -152,3 +152,5 @@ async def evaluate(request: EvaluateRequest):
 #             return FileResponse(file_path)
 #         # Fall back to index.html for client-side routing
 #         return FileResponse(FRONTEND_DIR / "index.html")
+
+# Triggering deployment to fix missing env vars

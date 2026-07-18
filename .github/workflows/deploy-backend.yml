@@ -41,11 +41,17 @@ jobs:
         region: ${{ env.REGION }}
         service: ${{ env.SERVICE }}
         image: ${{ env.IMAGE }}:${{ github.sha }}
-        env_vars:
+        # env_vars:
+        #   GOOGLE_CLOUD_PROJECT=${{ secrets.GCP_PROJECT_ID }}
+        #   AUTH_username=${{ secrets.AUTH_USERNAME }}
+        #   AUTH_password=${{ secrets.AUTH_PASSWORD }}
+        #   ALLOWED_ORIGINS=${{ secrets.FRONTEND_URL }}
+        env_vars: |
           GOOGLE_CLOUD_PROJECT=${{ secrets.GCP_PROJECT_ID }}
           AUTH_username=${{ secrets.AUTH_USERNAME }}
           AUTH_password=${{ secrets.AUTH_PASSWORD }}
           ALLOWED_ORIGINS=${{ secrets.FRONTEND_URL }}
+
         
 
 
