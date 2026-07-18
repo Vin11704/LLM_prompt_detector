@@ -1,0 +1,51 @@
+name: Deploy Backend
+
+on: 
+  push:
+    branches:
+    - deployment
+    paths:
+    - "backend/**"
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write # for WIF
+
+    env:
+      REGION: asia-southeast1
+      SERVICE: llmsecurity-api
+      IMAGE: asia-southeast1-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/llmsecurity/llmsecurity-api
+
+    steps:
+    - uses: actions/checkout@v6.0.3
+    - id: auth
+      uses: google-github-actions/auth@v3
+      with:
+        workload_identity_provider: ${{ secrets.WIF_PROVIDER }}
+        service_account: ${{ secrets.WIF_SERVICE_ACCOUNT }}
+    
+    - name: configure docker
+      run: gcloud auth configure-docker ${{ env.REGION }}-docker.pkg.dev --quiet
+
+    - name: build and push
+      run: |
+        docker build -t ${{ env.IMAGE }}:${{ github.sha }} -t ${{ env.IMAGE }}:latest -f backend/Dockerfile backend/
+        docker push ${{ env.IMAGE }} --all-tags
+
+    - name: deploy to cloud run
+      uses: google-github-actions/deploy-cloudrun@v3
+      with: 
+        region: ${{ env.REGION }}
+        service: ${{ env.SERVICE }}
+        image: ${{ env.IMAGE }}:${{ github.sha }}
+        env_vars:
+          GOOGLE_CLOUD_PROJECT=${{ secrets.GCP_PROJECT_ID }}
+          AUTH_username=${{ secrets.AUTH_USERNAME }}
+          AUTH_password=${{ secrets.AUTH_PASSWORD }}
+          ALLOWED_ORIGINS=${{ secrets.FRONTEND_URL }}
+        
+
+
