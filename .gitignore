@@ -3,4 +3,9 @@ gen-lang-client*.json
 .claude/
 .vscode/
 *.pdf
-*.pdf
+infra/*.tfstate*
+infra/*.tfvars*
+infra/*.log*
+infra/*.tfplan*
+infra/.terraform/
+analysis_results.md
