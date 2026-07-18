@@ -1,3 +1,26 @@
+# ─── Enable required Google Cloud APIs ───────────────────────────
+# Declared here so a fresh project is reproducible — otherwise these must be
+# remembered and enabled by hand (which is how the Vertex AI call ended up
+# failing at runtime).
+locals {
+  required_apis = [
+    "run.googleapis.com",
+    "artifactregistry.googleapis.com",
+    "aiplatform.googleapis.com",
+    "secretmanager.googleapis.com",
+    "iam.googleapis.com",
+    "iamcredentials.googleapis.com",
+    "sts.googleapis.com",
+  ]
+}
+
+resource "google_project_service" "enabled" {
+  for_each           = toset(local.required_apis)
+  project            = var.project_id
+  service            = each.value
+  disable_on_destroy = false # never disable APIs when tearing down this stack
+}
+
 # ─── Artifact Registry ───────────────────────────────────────────
 resource "google_artifact_registry_repository" "docker" {
   location      = var.region
@@ -10,6 +33,39 @@ resource "google_artifact_registry_repository" "docker" {
 resource "google_service_account" "cloudrun_sa" {
   account_id   = "llmsecurity-cloudrun"
   display_name = "LLM Security Cloud Run SA"
+}
+
+# Allow the runtime SA to call Vertex AI models. Without this the app gets
+# 403 PERMISSION_DENIED (aiplatform.endpoints.predict) at request time.
+resource "google_project_iam_member" "cloudrun_aiplatform" {
+  project = var.project_id
+  role    = "roles/aiplatform.user"
+  member  = "serviceAccount:${google_service_account.cloudrun_sa.email}"
+}
+
+# ─── Secret Manager: application secrets ─────────────────────────
+# Only the secret *containers* are managed here. Their *values* are added
+# out-of-band so plaintext never lands in Terraform state or version control:
+#   printf '%s' "<value>" | gcloud secrets versions add <name> --data-file=-
+locals {
+  app_secrets = ["session-secret", "auth-username", "auth-password"]
+}
+
+resource "google_secret_manager_secret" "app" {
+  for_each  = toset(local.app_secrets)
+  secret_id = each.value
+  replication {
+    auto {}
+  }
+  depends_on = [google_project_service.enabled]
+}
+
+# Let the Cloud Run runtime SA read each secret at container startup.
+resource "google_secret_manager_secret_iam_member" "app_accessor" {
+  for_each  = google_secret_manager_secret.app
+  secret_id = each.value.secret_id
+  role      = "roles/secretmanager.secretAccessor"
+  member    = "serviceAccount:${google_service_account.cloudrun_sa.email}"
 }
 
 # ─── Cloud Run: Backend ──────────────────────────────────────────
@@ -27,11 +83,12 @@ resource "google_cloud_run_v2_service" "backend" {
             container_port = 8000
         }
 
-        # env vars — set these after first deploy, or via GH Actions
-        # env { name = "GOOGLE_CLOUD_PROJECT" value = var.project_id }
-        # env { name = "AUTH_username"        value = "..." }
-        # env { name = "AUTH_password"        value = "..." }
-        # env { name = "ALLOWED_ORIGINS"      value = "..." }
+        # Runtime config is injected by the GitHub Actions deploy step
+        # (.github/workflows/deploy-backend.yml):
+        #   - plain env_vars: GOOGLE_CLOUD_PROJECT, ALLOWED_ORIGINS
+        #   - Secret Manager (secrets:): SESSION_SECRET, AUTH_username, AUTH_password
+        # Kept out of this resource so GH Actions remains the single writer of
+        # the service's container config and the two don't fight over drift.
 
         }
     }

@@ -46,12 +46,18 @@ jobs:
         #   AUTH_username=${{ secrets.AUTH_USERNAME }}
         #   AUTH_password=${{ secrets.AUTH_PASSWORD }}
         #   ALLOWED_ORIGINS=${{ secrets.FRONTEND_URL }}
+        # Non-sensitive config as plain env vars.
         env_vars: |
           GOOGLE_CLOUD_PROJECT=${{ secrets.GCP_PROJECT_ID }}
-          AUTH_username=${{ secrets.AUTH_USERNAME }}
-          AUTH_password=${{ secrets.AUTH_PASSWORD }}
           ALLOWED_ORIGINS=${{ secrets.FRONTEND_URL }}
-          SESSION_SECRET=${{ secrets.SESSION_SECRET }}
+        # Sensitive values mounted from Secret Manager (created in infra/main.tf).
+        # Format: ENV_NAME=SECRET_NAME:VERSION. The app reads them via os.getenv
+        # unchanged. Requires the runtime SA to have secretmanager.secretAccessor
+        # (granted in Terraform) and secret versions to exist.
+        secrets: |
+          SESSION_SECRET=session-secret:latest
+          AUTH_username=auth-username:latest
+          AUTH_password=auth-password:latest
 
         
 
