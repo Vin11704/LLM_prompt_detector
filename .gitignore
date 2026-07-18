@@ -9,3 +9,4 @@ infra/*.log*
 infra/*.tfplan*
 infra/.terraform/
 analysis_results.md
+__pycache__/
