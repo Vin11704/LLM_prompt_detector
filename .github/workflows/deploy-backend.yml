@@ -51,6 +51,7 @@ jobs:
           AUTH_username=${{ secrets.AUTH_USERNAME }}
           AUTH_password=${{ secrets.AUTH_PASSWORD }}
           ALLOWED_ORIGINS=${{ secrets.FRONTEND_URL }}
+          SESSION_SECRET=${{ secrets.SESSION_SECRET }}
 
         
 
