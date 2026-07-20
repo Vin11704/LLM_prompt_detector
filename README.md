@@ -537,6 +537,58 @@ sequenceDiagram
 
 ---
 
+### 5.4 When Does Terraform Code Need to Change?
+
+Terraform changes are **rare** compared to application code. The infrastructure was set up once and only needs updating when the *shape* of your cloud environment changes — not when your app logic changes.
+
+> [!IMPORTANT]
+> **Why `infra/` is not in the GitHub Actions path triggers:**  
+> Unlike app code (which produces an identical container every time), Terraform is **stateful and potentially destructive**. A misconfigured `.tf` change can delete Cloud Run services, wipe IAM bindings, or destroy the Artifact Registry. It requires human review of `terraform plan` output before applying. Additionally, the state file (`terraform.tfstate`) lives locally and is not accessible to GitHub Actions runners.
+
+#### Scenarios That Require Terraform Changes
+
+| Scenario | What to Change | Files Affected |
+|---|---|---|
+| **Move to a different GCP region** | Update the `region` variable default | `variables.tf` |
+| **Move to a different GCP project** | Update the `project_id` variable default | `variables.tf` |
+| **Transfer the repo to a new GitHub org/user** | Update the `github_repo` variable so WIF still trusts the correct repo | `variables.tf` |
+| **Add a new secret** (e.g., an API key for a new service) | Add the secret name to the `app_secrets` list in `locals`, then populate its value via `gcloud` | `main.tf` |
+| **Grant the backend a new GCP permission** (e.g., Cloud Storage access) | Add a new `google_project_iam_member` for the `cloudrun_sa` service account | `main.tf` |
+| **Add a third Cloud Run service** (e.g., a worker or admin panel) | Add a new `google_cloud_run_v2_service` resource + IAM binding | `main.tf`, `outputs.tf` |
+| **Restrict access** (remove public/unauthenticated access) | Remove or modify the `google_cloud_run_v2_service_iam_member` blocks for `allUsers` | `main.tf` |
+| **Add a custom domain** | Add `google_cloud_run_domain_mapping` resources | `main.tf` |
+| **Upgrade the Terraform provider version** | Update the `version` constraint | `versions.tf` |
+
+#### Scenarios That Do NOT Require Terraform Changes
+
+| Scenario | Why Not |
+|---|---|
+| Changing app code (routes, UI, prompts, etc.) | App code is deployed via GitHub Actions → Docker → Cloud Run. Terraform only manages the *infrastructure shell*. |
+| Changing environment variables or secret *values* | Env vars are set by the GitHub Actions deploy step. Secret *values* are updated via `gcloud secrets versions add`. Terraform only creates the *empty containers*. |
+| Updating LLM model names | This is app config in `backend/llm.py`, not infrastructure. |
+| Scaling Cloud Run (min/max instances) | Can be done in the Cloud Console or via `gcloud run services update` without touching Terraform. |
+
+#### How to Apply Terraform Changes
+
+```bash
+cd infra
+
+# 1. Preview what will change (ALWAYS do this first)
+terraform plan
+
+# 2. Review the plan output carefully — look for any "destroy" actions
+# 3. Apply only if the plan looks correct
+terraform apply
+
+# 4. If outputs changed (e.g., new service URL), update the corresponding
+#    GitHub Secrets in the repo settings
+```
+
+> [!CAUTION]
+> Always run `terraform plan` before `terraform apply`. If the plan shows resources being **destroyed** that you don't expect, stop and investigate. Common cause: someone modified a resource manually in the Cloud Console, creating drift between Terraform state and reality.
+
+---
+
 ## 6. CI/CD — GitHub Actions
 
 Two independent workflows fire on pushes to the `deployment` branch, scoped by path:
