@@ -70,7 +70,7 @@ resource "google_secret_manager_secret_iam_member" "app_accessor" {
 
 # ─── Cloud Run: Backend ──────────────────────────────────────────
 resource "google_cloud_run_v2_service" "backend" {
-  name = "llmsecurity-api"
+  name     = "llmsecurity-api"
   location = var.region
   ingress  = "INGRESS_TRAFFIC_ALL"
 
