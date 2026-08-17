@@ -1,0 +1,20 @@
+name: Terraform Validate
+on:
+  pull_request:
+    branches: [deployment]
+    paths: [infra/**]
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v6.0.3
+      - uses: hashicorp/setup-terraform@v3
+      - name: Terraform Init
+        run: terraform -chdir=infra init -backend=false
+      - name: Terraform Format Check
+        run: terraform -chdir=infra fmt -check
+      - name: Terraform Validate
+        run: terraform -chdir=infra validate

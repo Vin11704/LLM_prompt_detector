@@ -70,28 +70,34 @@ resource "google_secret_manager_secret_iam_member" "app_accessor" {
 
 # ─── Cloud Run: Backend ──────────────────────────────────────────
 resource "google_cloud_run_v2_service" "backend" {
-    name = "llmsecurity-api"
-    location = var.region
-    ingress = "INGRESS_TRAFFIC_ALL"
+  name     = "llmsecurity-api"
+  location = var.region
+  ingress  = "INGRESS_TRAFFIC_ALL"
 
-    template {
-        service_account = google_service_account.cloudrun_sa.email
-        containers {
-            image = "${var.region}-docker.pkg.dev/${var.project_id}/${var.repo_name}/llmsecurity-api:latest"
+  # GH Actions owns the deployed revision (image, env vars, secrets).
+  # Ignore template drift so Terraform doesn't revert GH Actions deploys.
+  lifecycle {
+    ignore_changes = [template]
+  }
 
-        ports {
-            container_port = 8000
-        }
+  template {
+    service_account = google_service_account.cloudrun_sa.email
+    containers {
+      image = "${var.region}-docker.pkg.dev/${var.project_id}/${var.repo_name}/llmsecurity-api:latest"
 
-        # Runtime config is injected by the GitHub Actions deploy step
-        # (.github/workflows/deploy-backend.yml):
-        #   - plain env_vars: GOOGLE_CLOUD_PROJECT, ALLOWED_ORIGINS
-        #   - Secret Manager (secrets:): SESSION_SECRET, AUTH_username, AUTH_password
-        # Kept out of this resource so GH Actions remains the single writer of
-        # the service's container config and the two don't fight over drift.
+      ports {
+        container_port = 8000
+      }
 
-        }
+      # Runtime config is injected by the GitHub Actions deploy step
+      # (.github/workflows/deploy-backend.yml):
+      #   - plain env_vars: GOOGLE_CLOUD_PROJECT, ALLOWED_ORIGINS
+      #   - Secret Manager (secrets:): SESSION_SECRET, AUTH_username, AUTH_password
+      # Kept out of this resource so GH Actions remains the single writer of
+      # the service's container config and the two don't fight over drift.
+
     }
+  }
 }
 
 # ─── Cloud Run: Frontend ─────────────────────────────────────────
@@ -99,7 +105,15 @@ resource "google_cloud_run_v2_service" "frontend" {
   name     = "llmsecurity-frontend"
   location = var.region
   ingress  = "INGRESS_TRAFFIC_ALL"
+
+  # GH Actions owns the deployed revision (image tag, build args).
+  # Ignore template drift so Terraform doesn't revert GH Actions deploys.
+  lifecycle {
+    ignore_changes = [template]
+  }
+
   template {
+    service_account = google_service_account.cloudrun_sa.email
     containers {
       image = "${var.region}-docker.pkg.dev/${var.project_id}/${var.repo_name}/llmsecurity-frontend:latest"
       ports {
@@ -134,7 +148,7 @@ resource "google_iam_workload_identity_pool_provider" "github" {
   workload_identity_pool_provider_id = "github-provider"
   display_name                       = "GitHub OIDC Provider"
   attribute_mapping = {
-    "google.subject"       = "assertion.sub" 
+    "google.subject"       = "assertion.sub"
     "attribute.repository" = "assertion.repository"
   }
   attribute_condition = "assertion.repository == \"${var.github_repo}\""
