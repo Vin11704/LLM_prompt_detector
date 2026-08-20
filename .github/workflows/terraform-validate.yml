@@ -26,6 +26,9 @@ jobs:
       contents: read
       id-token: write      # Required for WIF OIDC token
       pull-requests: write # Required to post plan output as PR comment
+    env:
+      TF_VAR_project_id: ${{ secrets.GCP_PROJECT_ID }}
+      TF_IN_AUTOMATION: "true"
     steps:
       - uses: actions/checkout@v6.0.3
 
@@ -38,11 +41,11 @@ jobs:
       - uses: hashicorp/setup-terraform@v3
 
       - name: Terraform Init
-        run: terraform -chdir=infra init
+        run: terraform -chdir=infra init -input=false
 
       - name: Terraform Plan
         id: plan
-        run: terraform -chdir=infra plan -no-color
+        run: terraform -chdir=infra plan -no-color -input=false
         continue-on-error: true
 
       - name: Post Plan to PR
