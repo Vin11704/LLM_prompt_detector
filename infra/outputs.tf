@@ -7,7 +7,8 @@ output "frontend_url" {
 }
 
 output "wif_provider" {
-  value = google_iam_workload_identity_pool_provider.github.name
+  # value = google_iam_workload_identity_pool_provider.github.name
+  value = module.gh_oidc.provider_name
 }
 
 output "deployer_sa_email" {

@@ -1,4 +1,8 @@
 terraform {
+  backend "gcs" {
+    bucket = "gen-lang-client-0591040744-tfstate"
+    prefix = "infra"
+  }
   required_providers {
     google = {
       source  = "hashicorp/google"
