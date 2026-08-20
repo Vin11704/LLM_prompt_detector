@@ -151,7 +151,8 @@ module "tfstate_bucket" {
 
   iam_members = [
     {
-      role   = "roles/storage.objectAdmin"
+      # roles/storage.admin includes objectAdmin + buckets.getIamPolicy (needed for terraform plan)
+      role   = "roles/storage.admin"
       member = "serviceAccount:${google_service_account.github_actions.email}"
     }
   ]
@@ -224,5 +225,11 @@ resource "google_project_iam_member" "sa_user" {
 resource "google_project_iam_member" "viewer" {
   project = var.project_id
   role    = "roles/viewer"
+  member  = "serviceAccount:${google_service_account.github_actions.email}"
+}
+# Allow the SA to list/read enabled APIs (needed for google_project_service resources in plan)
+resource "google_project_iam_member" "service_usage_viewer" {
+  project = var.project_id
+  role    = "roles/serviceusage.serviceUsageViewer"
   member  = "serviceAccount:${google_service_account.github_actions.email}"
 }
