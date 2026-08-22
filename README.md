@@ -103,7 +103,8 @@ LLM_prompt_detector/
 │
 ├── .github/workflows/          # CI/CD
 │   ├── deploy-backend.yml      # Build → Push → Deploy backend on Cloud Run
-│   └── deploy-frontend.yml     # Build → Push → Deploy frontend on Cloud Run
+│   ├── deploy-frontend.yml     # Build → Push → Deploy frontend on Cloud Run
+│   └── terraform-validate.yml  # Validate + Plan on PRs touching infra/
 │
 ├── docker-compose.yml          # Local dev: backend container only
 ├── .env.example                # Template for required env vars
@@ -126,7 +127,7 @@ LLM_prompt_detector/
 
 ### 3.2 File-by-File Breakdown
 
-#### [main.py](file:///d:/LLM_prompt_detector/backend/main.py) — API Routes & Streaming
+#### [main.py](\LLM_prompt_detector\backend\main.py) — API Routes & Streaming
 
 This is the **entry point**. It defines the FastAPI app, CORS config, and two core endpoints:
 
@@ -156,7 +157,7 @@ After all prompts are processed, a final `"complete"` event includes a summary w
 
 ---
 
-#### [llm.py](file:///d:/LLM_prompt_detector/backend/llm.py) — Vertex AI Integration
+#### [llm.py](LLM_prompt_detector/backend/llm.py) — Vertex AI Integration
 
 This file wraps all LLM interactions. Key things to understand:
 
@@ -178,7 +179,7 @@ evaluate_response(prompt, response) → {"verdict": "COMPLIED", "risk_level": "H
 
 ---
 
-#### [prompts.py](file:///d:/LLM_prompt_detector/backend/prompts.py) — System Prompts
+#### [prompts.py](LLM_prompt_detector/backend/prompts.py) — System Prompts
 
 Contains the exact system instructions given to each of the three LLMs. This is where you tune the evaluation behaviour.
 
@@ -190,7 +191,7 @@ Contains the exact system instructions given to each of the three LLMs. This is 
 
 ---
 
-#### [auth.py](file:///d:/LLM_prompt_detector/backend/auth.py) — Authentication
+#### [auth.py](LLM_prompt_detector/backend/auth.py) — Authentication
 
 > [!IMPORTANT]
 > Sessions are **stateless**. There is no database or server-side session store. This is by design — it lets Cloud Run scale to zero and back without losing sessions.
@@ -210,7 +211,7 @@ How it works:
 
 ---
 
-#### [model.py](file:///d:/LLM_prompt_detector/backend/model.py) — Pydantic Schemas
+#### [model.py](LLM_prompt_detector/backend/model.py) — Pydantic Schemas
 
 Simple data models for request/response validation:
 
@@ -271,35 +272,35 @@ flowchart TB
 
 | File | Purpose |
 |---|---|
-| [App.jsx](file:///d:/LLM_prompt_detector/frontend/src/App.jsx) | Root component. Sets up `BrowserRouter` → `AuthProvider` → `Routes`. Only two real routes: `/login` and `/` (protected). |
-| [main.jsx](file:///d:/LLM_prompt_detector/frontend/src/main.jsx) | React DOM entry point. Mounts `<App />` into the `#root` div. |
+| [App.jsx](LLM_prompt_detector/frontend/src/App.jsx) | Root component. Sets up `BrowserRouter` → `AuthProvider` → `Routes`. Only two real routes: `/login` and `/` (protected). |
+| [main.jsx](LLM_prompt_detector/frontend/src/main.jsx) | React DOM entry point. Mounts `<App />` into the `#root` div. |
 
 #### Pages
 
 | File | Purpose |
 |---|---|
-| [LoginPage.jsx](file:///d:/LLM_prompt_detector/frontend/src/pages/LoginPage.jsx) | Username/password form. Redirects to `/` on successful login. Displays auth errors inline. |
-| [EvaluationPage.jsx](file:///d:/LLM_prompt_detector/frontend/src/pages/EvaluationPage.jsx) | The main workspace. Composes all UI panels (upload, progress, results, summary) and wires them to the `useEvaluation` hook. Auto-scrolls to the summary panel when evaluation completes. |
+| [LoginPage.jsx](LLM_prompt_detector/frontend/src/pages/LoginPage.jsx) | Username/password form. Redirects to `/` on successful login. Displays auth errors inline. |
+| [EvaluationPage.jsx](LLM_prompt_detector/frontend/src/pages/EvaluationPage.jsx) | The main workspace. Composes all UI panels (upload, progress, results, summary) and wires them to the `useEvaluation` hook. Auto-scrolls to the summary panel when evaluation completes. |
 
 #### Components
 
 | Component | What It Renders |
 |---|---|
-| [Header.jsx](file:///d:/LLM_prompt_detector/frontend/src/components/Header.jsx) | App title bar with logout button. |
-| [ProtectedRoute.jsx](file:///d:/LLM_prompt_detector/frontend/src/components/ProtectedRoute.jsx) | Route guard. If not authenticated, redirects to `/login`. Shows a loading spinner while checking. |
-| [UploadPanel.jsx](file:///d:/LLM_prompt_detector/frontend/src/components/UploadPanel.jsx) | Drag-and-drop or click-to-upload `.txt` file area. Shows parsed prompt count and "Run Evaluation" button. |
-| [ProgressPanel.jsx](file:///d:/LLM_prompt_detector/frontend/src/components/ProgressPanel.jsx) | Progress bar + current step label ("Classifying…" / "Testing…" / "Evaluating…") during an active run. |
-| [ResultsTable.jsx](file:///d:/LLM_prompt_detector/frontend/src/components/ResultsTable.jsx) | Table of per-prompt results as they stream in. Shows prompt text, classification, target response, verdict, and risk badges. |
-| [SummaryPanel.jsx](file:///d:/LLM_prompt_detector/frontend/src/components/SummaryPanel.jsx) | Post-run summary: vulnerability score, verdict distribution, per-category breakdown. Includes a "Download Report" button (JSON). |
-| [Badge.jsx](file:///d:/LLM_prompt_detector/frontend/src/components/Badge.jsx) | Reusable coloured label component for verdicts, risk levels, etc. |
-| [ErrorBanner.jsx](file:///d:/LLM_prompt_detector/frontend/src/components/ErrorBanner.jsx) | Dismissible error banner shown at the top of the page. |
+| [Header.jsx](LLM_prompt_detector/frontend/src/components/Header.jsx) | App title bar with logout button. |
+| [ProtectedRoute.jsx](LLM_prompt_detector/frontend/src/components/ProtectedRoute.jsx) | Route guard. If not authenticated, redirects to `/login`. Shows a loading spinner while checking. |
+| [UploadPanel.jsx](LLM_prompt_detector/frontend/src/components/UploadPanel.jsx) | Drag-and-drop or click-to-upload `.txt` file area. Shows parsed prompt count and "Run Evaluation" button. |
+| [ProgressPanel.jsx](LLM_prompt_detector/frontend/src/components/ProgressPanel.jsx) | Progress bar + current step label ("Classifying…" / "Testing…" / "Evaluating…") during an active run. |
+| [ResultsTable.jsx](LLM_prompt_detector/frontend/src/components/ResultsTable.jsx) | Table of per-prompt results as they stream in. Shows prompt text, classification, target response, verdict, and risk badges. |
+| [SummaryPanel.jsx](LLM_prompt_detector/frontend/src/components/SummaryPanel.jsx) | Post-run summary: vulnerability score, verdict distribution, per-category breakdown. Includes a "Download Report" button (JSON). |
+| [Badge.jsx](LLM_prompt_detector/frontend/src/components/Badge.jsx) | Reusable coloured label component for verdicts, risk levels, etc. |
+| [ErrorBanner.jsx](LLM_prompt_detector/frontend/src/components/ErrorBanner.jsx) | Dismissible error banner shown at the top of the page. |
 
 #### State Management
 
 | File | Pattern | What It Manages |
 |---|---|---|
-| [AuthContext.jsx](file:///d:/LLM_prompt_detector/frontend/src/context/AuthContext.jsx) | React Context + `useCallback` | `isAuthenticated`, `isLoading`, `authError`, `login()`, `logout()`, `dismissAuthError()`. On mount, calls `GET /auth/check-auth` to restore existing sessions. |
-| [useEvaluation.js](file:///d:/LLM_prompt_detector/frontend/src/hooks/useEvaluation.js) | `useReducer` + `useCallback` | The entire evaluation lifecycle: file parsing, SSE streaming, result accumulation, error tracking, report generation. This is the **most complex file in the frontend**. |
+| [AuthContext.jsx](LLM_prompt_detector/frontend/src/context/AuthContext.jsx) | React Context + `useCallback` | `isAuthenticated`, `isLoading`, `authError`, `login()`, `logout()`, `dismissAuthError()`. On mount, calls `GET /auth/check-auth` to restore existing sessions. |
+| [useEvaluation.js](LLM_prompt_detector/frontend/src/hooks/useEvaluation.js) | `useReducer` + `useCallback` | The entire evaluation lifecycle: file parsing, SSE streaming, result accumulation, error tracking, report generation. This is the **most complex file in the frontend**. |
 
 **`useEvaluation` state machine:**
 
@@ -321,16 +322,16 @@ IDLE ──[parseFile]──► PROMPTS_LOADED ──[runEvaluation]──► RU
 
 | File | Exports |
 |---|---|
-| [api.js](file:///d:/LLM_prompt_detector/frontend/src/utils/api.js) | `API_BASE` (from `VITE_API_URL` or empty for dev proxy), `apiUrl(path)` helper. |
-| [helpers.js](file:///d:/LLM_prompt_detector/frontend/src/utils/helpers.js) | `truncate()`, `escapeHtml()`, `downloadJson()`, `getBadgeClasses()` — pure utility functions. |
+| [api.js](LLM_prompt_detector/frontend/src/utils/api.js) | `API_BASE` (from `VITE_API_URL` or empty for dev proxy), `apiUrl(path)` helper. |
+| [helpers.js](LLM_prompt_detector/frontend/src/utils/helpers.js) | `truncate()`, `escapeHtml()`, `downloadJson()`, `getBadgeClasses()` — pure utility functions. |
 
 #### Build & Serving
 
 | File | Purpose |
 |---|---|
-| [vite.config.js](file:///d:/LLM_prompt_detector/frontend/vite.config.js) | During **local dev**, proxies `/parse`, `/evaluate`, and `/auth` to `http://localhost:8000` so the frontend and backend share the same origin (avoids CORS issues). |
-| [nginx.conf](file:///d:/LLM_prompt_detector/frontend/nginx.conf) | Production Nginx config. Serves the SPA with `try_files ... /index.html` fallback. Hashed assets (`/assets/`) are cached for 1 year; `index.html` is never cached so deploys propagate immediately. |
-| [Dockerfile](file:///d:/LLM_prompt_detector/frontend/Dockerfile) | **Two-stage build**: (1) `node:slim` builds the Vite project with `npm run build`, baking in `VITE_API_URL` as a build arg. (2) `nginx:alpine` serves the resulting `dist/` folder. |
+| [vite.config.js](LLM_prompt_detector/frontend/vite.config.js) | During **local dev**, proxies `/parse`, `/evaluate`, and `/auth` to `http://localhost:8000` so the frontend and backend share the same origin (avoids CORS issues). |
+| [nginx.conf](LLM_prompt_detector/frontend/nginx.conf) | Production Nginx config. Serves the SPA with `try_files ... /index.html` fallback. Hashed assets (`/assets/`) are cached for 1 year; `index.html` is never cached so deploys propagate immediately. |
+| [Dockerfile](LLM_prompt_detector/frontend/Dockerfile) | **Two-stage build**: (1) `node:slim` builds the Vite project with `npm run build`, baking in `VITE_API_URL` as a build arg. (2) `nginx:alpine` serves the resulting `dist/` folder. |
 
 > [!TIP]
 > The Vite proxy means you **do not** need to set `VITE_API_URL` during local development. It's only needed when building for production (set via `--build-arg` in the GitHub Actions workflow).
@@ -343,11 +344,11 @@ This table shows **exactly which frontend file calls which backend endpoint**. U
 
 | Frontend File | Function | Backend Endpoint | Method | What It Sends | What It Receives |
 |---|---|---|---|---|---|
-| [AuthContext.jsx](file:///d:/LLM_prompt_detector/frontend/src/context/AuthContext.jsx) | `checkAuth()` | `/auth/check-auth` | GET | Session cookie (auto) | `200 OK` or `401` |
-| [AuthContext.jsx](file:///d:/LLM_prompt_detector/frontend/src/context/AuthContext.jsx) | `login()` | `/auth/login` | POST | `{ username, password }` | `{ message }` + `Set-Cookie` |
-| [AuthContext.jsx](file:///d:/LLM_prompt_detector/frontend/src/context/AuthContext.jsx) | `logout()` | `/auth/logout` | POST | Session cookie (auto) | `{ message }` + cookie deleted |
-| [useEvaluation.js](file:///d:/LLM_prompt_detector/frontend/src/hooks/useEvaluation.js) | `parseFile()` | `/parse` | POST | `FormData` with `.txt` file | `{ prompts: [...], total: N }` |
-| [useEvaluation.js](file:///d:/LLM_prompt_detector/frontend/src/hooks/useEvaluation.js) | `runEvaluation()` | `/evaluate` | POST | `{ prompts: [...] }` | **SSE stream** of JSON events |
+| [AuthContext.jsx](LLM_prompt_detector/frontend/src/context/AuthContext.jsx) | `checkAuth()` | `/auth/check-auth` | GET | Session cookie (auto) | `200 OK` or `401` |
+| [AuthContext.jsx](LLM_prompt_detector/frontend/src/context/AuthContext.jsx) | `login()` | `/auth/login` | POST | `{ username, password }` | `{ message }` + `Set-Cookie` |
+| [AuthContext.jsx](LLM_prompt_detector/frontend/src/context/AuthContext.jsx) | `logout()` | `/auth/logout` | POST | Session cookie (auto) | `{ message }` + cookie deleted |
+| [useEvaluation.js](LLM_prompt_detector/frontend/src/hooks/useEvaluation.js) | `parseFile()` | `/parse` | POST | `FormData` with `.txt` file | `{ prompts: [...], total: N }` |
+| [useEvaluation.js](LLM_prompt_detector/frontend/src/hooks/useEvaluation.js) | `runEvaluation()` | `/evaluate` | POST | `{ prompts: [...] }` | **SSE stream** of JSON events |
 
 #### Components → API (indirect via hooks/context)
 
@@ -355,16 +356,16 @@ Components don't call APIs directly. They consume state and functions from hooks
 
 | Component | Gets State/Functions From | Indirectly Triggers API |
 |---|---|---|
-| [LoginPage.jsx](file:///d:/LLM_prompt_detector/frontend/src/pages/LoginPage.jsx) | `useAuth()` → AuthContext | `POST /auth/login` (on form submit) |
-| [Header.jsx](file:///d:/LLM_prompt_detector/frontend/src/components/Header.jsx) | `useAuth()` → AuthContext | `POST /auth/logout` (on logout click) |
-| [ProtectedRoute.jsx](file:///d:/LLM_prompt_detector/frontend/src/components/ProtectedRoute.jsx) | `useAuth()` → AuthContext | Reads `isAuthenticated` / `isLoading` (set by `GET /auth/check-auth` on mount) |
-| [UploadPanel.jsx](file:///d:/LLM_prompt_detector/frontend/src/components/UploadPanel.jsx) | Props from EvaluationPage ← `useEvaluation()` | `POST /parse` (via `onFileSelected` prop) |
-| [EvaluationPage.jsx](file:///d:/LLM_prompt_detector/frontend/src/pages/EvaluationPage.jsx) | `useEvaluation()` directly | `POST /parse` + `POST /evaluate` (orchestrates the full flow) |
-| [ProgressPanel.jsx](file:///d:/LLM_prompt_detector/frontend/src/components/ProgressPanel.jsx) | Props from EvaluationPage | None — displays `currentStep` / `completed` from SSE state |
-| [ResultsTable.jsx](file:///d:/LLM_prompt_detector/frontend/src/components/ResultsTable.jsx) | Props from EvaluationPage | None — renders `results[]` accumulated from SSE events |
-| [SummaryPanel.jsx](file:///d:/LLM_prompt_detector/frontend/src/components/SummaryPanel.jsx) | Props from EvaluationPage | None — renders `summary` + offers JSON download (client-side only) |
-| [ErrorBanner.jsx](file:///d:/LLM_prompt_detector/frontend/src/components/ErrorBanner.jsx) | Props from EvaluationPage | None — displays error string |
-| [Badge.jsx](file:///d:/LLM_prompt_detector/frontend/src/components/Badge.jsx) | Props | None — pure presentational |
+| [LoginPage.jsx](LLM_prompt_detector/frontend/src/pages/LoginPage.jsx) | `useAuth()` → AuthContext | `POST /auth/login` (on form submit) |
+| [Header.jsx](LLM_prompt_detector/frontend/src/components/Header.jsx) | `useAuth()` → AuthContext | `POST /auth/logout` (on logout click) |
+| [ProtectedRoute.jsx](LLM_prompt_detector/frontend/src/components/ProtectedRoute.jsx) | `useAuth()` → AuthContext | Reads `isAuthenticated` / `isLoading` (set by `GET /auth/check-auth` on mount) |
+| [UploadPanel.jsx](LLM_prompt_detector/frontend/src/components/UploadPanel.jsx) | Props from EvaluationPage ← `useEvaluation()` | `POST /parse` (via `onFileSelected` prop) |
+| [EvaluationPage.jsx](LLM_prompt_detector/frontend/src/pages/EvaluationPage.jsx) | `useEvaluation()` directly | `POST /parse` + `POST /evaluate` (orchestrates the full flow) |
+| [ProgressPanel.jsx](LLM_prompt_detector/frontend/src/components/ProgressPanel.jsx) | Props from EvaluationPage | None — displays `currentStep` / `completed` from SSE state |
+| [ResultsTable.jsx](LLM_prompt_detector/frontend/src/components/ResultsTable.jsx) | Props from EvaluationPage | None — renders `results[]` accumulated from SSE events |
+| [SummaryPanel.jsx](LLM_prompt_detector/frontend/src/components/SummaryPanel.jsx) | Props from EvaluationPage | None — renders `summary` + offers JSON download (client-side only) |
+| [ErrorBanner.jsx](LLM_prompt_detector/frontend/src/components/ErrorBanner.jsx) | Props from EvaluationPage | None — displays error string |
+| [Badge.jsx](LLM_prompt_detector/frontend/src/components/Badge.jsx) | Props | None — pure presentational |
 
 
 #### Visual Data Flow
@@ -418,7 +419,7 @@ sequenceDiagram
 
 ## 5. Infrastructure — Terraform
 
-All infrastructure is defined in the [infra/](file:///d:/LLM_prompt_detector/infra) directory and managed with **Terraform** using the `hashicorp/google` provider (`~> 7.40`).
+All infrastructure is defined in the [infra/](LLM_prompt_detector/infra) directory and managed with **Terraform** using the `hashicorp/google` provider (`~> 7.40`).
 
 ### 5.1 What Terraform Manages
 
@@ -442,7 +443,7 @@ flowchart LR
 
 ### 5.2 Resource-by-Resource Walkthrough
 
-The following table maps every resource in [main.tf](file:///d:/LLM_prompt_detector/infra/main.tf) to its purpose:
+The following table maps every resource in [main.tf](LLM_prompt_detector/infra/main.tf) to its purpose:
 
 #### API Enablement (Lines 1–22)
 
@@ -482,10 +483,22 @@ The following table maps every resource in [main.tf](file:///d:/LLM_prompt_detec
 
 #### Cloud Run Services (Lines 71–125)
 
+> [!IMPORTANT]
+> **Ownership model — who controls what:**
+>
+> | Layer | Owner | How |
+> |---|---|---|
+> | Service existence, IAM, ingress, public access | **Terraform** | `terraform apply` (manual, infrequent) |
+> | Container image, env vars, secrets (the `template` block) | **GitHub Actions** | Auto-deploy on push to `deployment` |
+>
+> Both Cloud Run resources use **`lifecycle { ignore_changes = [template] }`**. This tells Terraform: "I created this service, but don't touch what's actually running inside it." Without this, every `terraform apply` would revert Cloud Run back to the initial image/config and undo whatever GitHub Actions deployed.
+>
+> **In practice**: Terraform creates the empty "slot"; GitHub Actions builds a Docker image, pushes it to Artifact Registry, and tells Cloud Run to run it.
+
 | Resource | Purpose |
 |---|---|
-| `google_cloud_run_v2_service.backend` | Deploys the backend API as `llmsecurity-api`. Runs on the `cloudrun_sa` service account. Port 8000. Image pulled from Artifact Registry. **Note**: Environment variables and secrets are intentionally **not** set here — they're managed by GitHub Actions during deploy to avoid Terraform/GHA fighting over drift. |
-| `google_cloud_run_v2_service.frontend` | Deploys the frontend as `llmsecurity-frontend`. Port 8081. No service account specified (uses the default). |
+| `google_cloud_run_v2_service.backend` | Creates the backend Cloud Run service `llmsecurity-api` on port 8000, running as the `cloudrun_sa` service account. The initial image reference points to Artifact Registry, but the **actual deployed image is managed by GitHub Actions** (see ownership model above). Environment variables and secrets are also set by the deploy workflow, not Terraform. |
+| `google_cloud_run_v2_service.frontend` | Creates the frontend Cloud Run service `llmsecurity-frontend` on port 8081. Same ownership split — Terraform creates the service, GitHub Actions deploys to it. |
 | `google_cloud_run_v2_service_iam_member.backend_public` | Allows **unauthenticated** public access to the backend (`allUsers` can invoke). Application-level auth (session cookies) handles access control. |
 | `google_cloud_run_v2_service_iam_member.frontend_public` | Same: public access to the frontend. |
 
@@ -517,7 +530,7 @@ sequenceDiagram
 
 ### 5.3 Variables & Outputs
 
-**Variables** ([variables.tf](file:///d:/LLM_prompt_detector/infra/variables.tf)):
+**Variables** ([variables.tf](LLM_prompt_detector/infra/variables.tf)):
 
 | Variable | Default | Description |
 |---|---|---|
@@ -526,7 +539,7 @@ sequenceDiagram
 | `repo_name` | `llmsecurity` | Artifact Registry repository name |
 | `github_repo` | `Vin11704/LLM_prompt_detector` | GitHub repo (for WIF restriction) |
 
-**Outputs** ([outputs.tf](file:///d:/LLM_prompt_detector/infra/outputs.tf)):
+**Outputs** ([outputs.tf](LLM_prompt_detector/infra/outputs.tf)):
 
 | Output | Value | Used For |
 |---|---|---|
@@ -591,9 +604,47 @@ terraform apply
 
 ## 6. CI/CD — GitHub Actions
 
-Two independent workflows fire on pushes to the `deployment` branch, scoped by path:
+Three workflows automate validation and deployment, each scoped by **trigger type** and **file path**:
 
-### 6.1 Backend Deploy — [deploy-backend.yml](file:///d:/LLM_prompt_detector/.github/workflows/deploy-backend.yml)
+| Workflow | Trigger | Path Filter | What It Does |
+|---|---|---|---|
+| [terraform-validate.yml](LLM_prompt_detector/.github/workflows/terraform-validate.yml) | **Pull request** → `deployment` | `infra/**` | Validates Terraform syntax + runs `terraform plan` (posted as PR comment) |
+| [deploy-backend.yml](LLM_prompt_detector/.github/workflows/deploy-backend.yml) | **Push** to `deployment` | `backend/**` | Builds, pushes, and deploys backend to Cloud Run |
+| [deploy-frontend.yml](LLM_prompt_detector/.github/workflows/deploy-frontend.yml) | **Push** to `deployment` | `frontend/**` | Builds, pushes, and deploys frontend to Cloud Run |
+
+> [!NOTE]
+> **There is no `terraform apply` workflow.** Terraform is only validated and planned automatically — never auto-applied. `terraform apply` is always run manually from a local machine after reviewing the plan. This is intentional because Terraform changes are stateful and potentially destructive.
+
+### 6.1 Terraform Validate & Plan — [terraform-validate.yml](LLM_prompt_detector/.github/workflows/terraform-validate.yml)
+
+**Triggers**: Pull request to `deployment` branch when files in `infra/**` change.
+
+```mermaid
+flowchart LR
+    A["Checkout code"] --> B["terraform init\n(no backend)"]
+    B --> C["terraform fmt -check"]
+    C --> D["terraform validate"]
+    D --> E["Authenticate via WIF"]
+    E --> F["terraform init\n(with backend)"]
+    F --> G["terraform plan"]
+    G --> H["Post plan as\nPR comment"]
+
+    style H fill:#2563eb,color:#fff
+```
+
+| Job | Step | What Happens |
+|---|---|---|
+| **validate** | Format check | Runs `terraform fmt -check` to enforce consistent formatting. |
+| | Validate | Runs `terraform validate` to catch syntax/config errors without needing GCP credentials. |
+| **plan** (needs validate) | Auth | Authenticates to GCP via WIF to access the remote state bucket. |
+| | Init | `terraform init` with the real GCS backend. |
+| | Plan | Runs `terraform plan` to preview what would change. |
+| | PR Comment | Posts the full plan output as a comment on the pull request so reviewers can see exactly what infrastructure changes the PR would cause. |
+
+> [!TIP]
+> The plan output in the PR comment lets you review infrastructure changes **before merging**. After merging, you still need to manually run `terraform apply` locally to execute the changes.
+
+### 6.2 Backend Deploy — [deploy-backend.yml](LLM_prompt_detector/.github/workflows/deploy-backend.yml)
 
 **Triggers**: Push to `deployment` branch when files in `backend/**` change.
 
@@ -620,7 +671,7 @@ flowchart LR
 > [!IMPORTANT]
 > The backend deploy step is the **single source of truth** for environment variables and secrets on Cloud Run. Terraform intentionally leaves them out to avoid conflicting writes.
 
-### 6.2 Frontend Deploy — [deploy-frontend.yml](file:///d:/LLM_prompt_detector/.github/workflows/deploy-frontend.yml)
+### 6.3 Frontend Deploy — [deploy-frontend.yml](LLM_prompt_detector\\.github\\workflows\\deploy-frontend.yml)
 
 **Triggers**: Push to `deployment` branch when files in `frontend/**` change.
 
@@ -632,7 +683,7 @@ flowchart LR
 | **Build & Push** | Builds from `frontend/Dockerfile` with `--build-arg VITE_API_URL=${{ secrets.BACKEND_URL }}`. This **bakes the production API URL into the JavaScript bundle at build time** (Vite replaces `import.meta.env.VITE_API_URL`). |
 | **Deploy** | Deploys to `llmsecurity-frontend`. No env vars needed at runtime (everything is baked into the static bundle). |
 
-### 6.3 Required GitHub Secrets
+### 6.4 Required GitHub Secrets
 
 These must be configured in the GitHub repository settings (`Settings → Secrets and variables → Actions`):
 
@@ -712,13 +763,25 @@ docker-compose up --build
 
 ### Deployment Flow
 
+**App code changes** (most common):
 ```
 1. Make changes on a feature branch
-2. Merge to `deployment` branch
-3. GitHub Actions auto-deploys:
+2. Open a PR to `deployment` branch
+3. Merge to `deployment` branch
+4. GitHub Actions auto-deploys:
    - backend/** changes → rebuilds & deploys backend Cloud Run
    - frontend/** changes → rebuilds & deploys frontend Cloud Run
-4. Verify at the Cloud Run URLs from Terraform outputs
+5. Verify at the Cloud Run URLs from Terraform outputs
+```
+
+**Infrastructure changes** (rare):
+```
+1. Make changes to infra/ on a feature branch
+2. Open a PR to `deployment` → terraform validate + plan runs automatically
+3. Review the plan output posted as a PR comment
+4. Merge the PR
+5. Manually run `terraform apply` locally to execute the changes
+6. If outputs changed, update the corresponding GitHub Secrets
 ```
 
 ---

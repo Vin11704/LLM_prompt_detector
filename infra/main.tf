@@ -45,7 +45,7 @@ resource "google_project_iam_member" "cloudrun_aiplatform" {
 
 # ─── Secret Manager: application secrets ─────────────────────────
 # Only the secret *containers* are managed here. Their *values* are added
-# out-of-band so plaintext never lands in Terraform state or version control:
+# out-of-band so plaintext never lands in Terraform state or version control as follows:
 #   printf '%s' "<value>" | gcloud secrets versions add <name> --data-file=-
 locals {
   app_secrets = ["session-secret", "auth-username", "auth-password"]
