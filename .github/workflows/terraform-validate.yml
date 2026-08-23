@@ -4,6 +4,11 @@ on:
     branches: [deployment]
     paths: [infra/**]
 
+# prevents simultaneous plan race condition
+concurrency:
+    group: terraform-${{ github.head_ref }} 
+    cancel-in-progress: true
+
 jobs:
   validate:
     runs-on: ubuntu-latest
@@ -53,16 +58,46 @@ jobs:
         if: github.event_name == 'pull_request'
         with:
           script: |
-            const output = `#### Terraform Plan 📖
+            const planOutcome = '${{ steps.plan.outcome }}';
+            const stdout = `${{ steps.plan.outputs.stdout }}`;
+            const stderr = `${{ steps.plan.outputs.stderr }}`;
+
+            let body;
+            if (planOutcome === 'failure') {
+              body = `#### Terraform Plan Failed
             \`\`\`
-            ${{ steps.plan.outputs.stdout }}
+            ${stderr}
             \`\`\`
             *Triggered by @${{ github.actor }}*`;
+            } else {
+              body = `#### Terraform Plan
+            \`\`\`
+            ${stdout}
+            \`\`\`
+            *Triggered by @${{ github.actor }}*`;
+            }
+
+            // Delete previous bot comments to keep PR timeline clean
+            const { data: comments } = await github.rest.issues.listComments({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+            });
+            for (const comment of comments) {
+              if (comment.user.type === 'Bot' && (comment.body.includes('Terraform Plan') || comment.body.includes('Terraform Plan Failed'))) {
+                await github.rest.issues.deleteComment({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  comment_id: comment.id,
+                });
+              }
+            }
+
             github.rest.issues.createComment({
               issue_number: context.issue.number,
               owner: context.repo.owner,
               repo: context.repo.repo,
-              body: output.substring(0, 65536)
+              body: body.substring(0, 65536)
             });
 
       - name: Fail on Plan Error
